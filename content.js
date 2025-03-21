@@ -123,6 +123,8 @@ function showNotification(response) {
   // Add advertisement
   addAdvertisement(notification);
 
+  // hide, show it for debug.
+  notification.style.display = 'none'; 
   // Add the notification to the page
   document.body.appendChild(notification);
 
@@ -352,8 +354,9 @@ function setupPageHandlers() {
   document.addEventListener('mouseout', handleLinkLeave);
   
   // 检查当前页面
-  if (isTransactionPage()) {
-    checkForJitoBundle();
+  if (isTransactionPage()) {    
+    checkForJitoBundle();    
+    attemptInsertCustomDiv("#", "Bundle ID (Tip)");
   } else {
     removeNotification();
   }
@@ -382,7 +385,7 @@ function insertCustomDiv(para_link, para_text) {
                           <path d="M12 17h.01"></path>
                       </svg>
                   </div>
-                  <div class="not-italic text-[14px] leading-[24px] text-neutral8 md:text-neutral5 font-medium md:font-normal">Jito Bundle</div>
+                  <div class="not-italic text-[14px] leading-[24px] text-neutral8 md:text-neutral5 font-medium md:font-normal">Landed By</div>
               </div>
           </div>
           <div class="max-w-24/24 md:max-w-18/24 flex-24/24 md:flex-18/24 block relative box-border my-0 px-4 sm:px-3">
@@ -410,7 +413,7 @@ function insertCustomDiv(para_link, para_text) {
   `;
 
   // 插入新元素
-  const outerDiv = signerDiv.closest("div").parentNode; // 获取最外层的 <div>
+  const outerDiv = signerDiv.closest("div").parentNode.closest("div").parentNode.closest("div").parentNode; // 获取最外层的 <div>  
   outerDiv.insertAdjacentElement("afterend", newDiv);
   return true;
 }
@@ -493,7 +496,7 @@ function attemptUpdateCustomDiv(maxAttempts = 30, attempt = 0) {
     if (isJitoBundle) {    
       bundleId = global_response.bundleId;      
       if (element) {
-        element.textContent = bundleId + ' (Validator Tip: ' + global_response.validatorTip + ')';
+        element.textContent = 'Jito (Tips: ' + global_response.validatorTip + ' SOL)';
         element.href = global_response.bundleUrl;
       }    
 
@@ -517,8 +520,8 @@ function attemptUpdateCustomDiv(maxAttempts = 30, attempt = 0) {
       } 
     } else {
       if (element) {
-        element.textContent = "Not Jito bundle";
-        element.style.color = "red";
+        element.textContent = "Normal";
+        element.style.color = "black";
       }            
     }
     global_response = null;    
@@ -537,6 +540,7 @@ new MutationObserver(() => {
     lastUrl = url;
     if (isTransactionPage()) {
       checkForJitoBundle();
+      attemptInsertCustomDiv("#", "Bundle ID (Tip)");
     } else {
       removeNotification();
     }
@@ -547,12 +551,13 @@ new MutationObserver(() => {
 window.addEventListener('popstate', () => {
   if (isTransactionPage()) {
     checkForJitoBundle();
+    attemptInsertCustomDiv("#", "Bundle ID (Tip)");
   } else {
     removeNotification();
   }
 });
 
   // 检查当前页面
-  if (isTransactionPage()) {
-    attemptInsertCustomDiv("#", "Bundle ID (Tip)");
-  }
+  //if (isTransactionPage()) {
+  //  attemptInsertCustomDiv("#", "Bundle ID (Tip)");
+  //}
