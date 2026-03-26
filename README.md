@@ -1,3 +1,5 @@
+[English](./README.md) | [中文](./README_zh.md)
+
 # What's Solscan Jito Bundle Detector
 Solscan Jito Bundle Detector is a Chrome-based Jito plugin (as Chrome Extension) that automatically checks whether a transaction is on-chain on Jito when a tx link is swiped on solscan.io.
 
