@@ -4,7 +4,6 @@ let hoverNotification = null;
 let txStartsWith = 'https://solscan.io/tx/';
 let global_response = null;
 
-// 正则表达式用于匹配Solana交易签名
 const solanaSignatureRegex = /[1-9A-HJ-NP-Za-km-z]{32,88}/;
 
 function checkForJitoBundle() {
@@ -151,7 +150,7 @@ function showHoverNotification(response, x, y) {
   notification.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
   notification.style.fontSize = '12px';
   notification.style.fontWeight = 'bold';
-  notification.style.pointerEvents = 'none'; // 让鼠标事件穿透该元素
+  notification.style.pointerEvents = 'none'; 
   notification.style.maxWidth = '200px';
 
   if (isJitoBundle) {
@@ -201,7 +200,7 @@ function showErrorNotification() {
   notification.style.fontWeight = 'bold';
   notification.style.backgroundColor = '#FF9800';
   notification.style.color = 'white';
-  notification.textContent = '! 检查 Jito bundle 时出错';
+  notification.textContent = '! failed for Jito bundle';
 
   // Add a close button
   const closeButton = document.createElement('span');
@@ -246,7 +245,6 @@ function addAdvertisement(element, isHover = false) {
   adLink.style.textDecoration = 'underline';
   adLink.style.fontWeight = 'bold';
   
-  // 如果是悬停通知，则启用点击事件(需要覆盖pointerEvents)
   if (isHover) {
     adLink.style.pointerEvents = 'auto';
     adLink.style.cursor = 'pointer';
@@ -257,15 +255,14 @@ function addAdvertisement(element, isHover = false) {
   element.appendChild(adContainer);
 }
 
-// 检查链接是否包含Solana交易签名
 function extractSignatureFromLink(link) {
-  // 检查是否是solscan的交易链接
+  
   if (link.href && link.href.includes('solscan.io/tx/')) {
     return link.href.split('/tx/')[1];
   }
   
   /*
-  // 检查是否是其他包含Solana签名的链接
+  
   if (link.href && solanaSignatureRegex.test(link.href)) {
     const match = link.href.match(solanaSignatureRegex);
     if (match && match[0].length >= 32) {
@@ -273,7 +270,7 @@ function extractSignatureFromLink(link) {
     }
   }
   
-  // 检查链接文本是否是Solana签名
+  
   if (link.textContent && solanaSignatureRegex.test(link.textContent)) {
     const match = link.textContent.match(solanaSignatureRegex);
     if (match && match[0].length >= 32) {
@@ -284,7 +281,7 @@ function extractSignatureFromLink(link) {
   return null;
 }
 
-// 鼠标悬停处理
+
 let hoverTimeout = null;
 let currentHoverSignature = null;
 
@@ -292,7 +289,7 @@ function handleLinkHover(event) {
   const link = event.target.closest('a');
   if (!link) return;
   
-  // 清除任何现有的悬停超时和通知
+  
   clearTimeout(hoverTimeout);
   removeHoverNotification();
   
@@ -300,23 +297,23 @@ function handleLinkHover(event) {
   const signature = extractSignatureFromLink(link);
   if (!signature) return;
   
-  // 存储当前检查的签名以防止重复请求
+  
   currentHoverSignature = signature;
   
-  // 延迟显示通知，以避免频繁触发
+  
   hoverTimeout = setTimeout(() => {
     const x = event.clientX;
     const y = event.clientY;
     
     //console.log('sending message to check for link hover')
-    // 检查是否是Jito bundle
+    // check Jito bundle
     chrome.runtime.sendMessage(
       { 
         type: 'fetchJitoBundle', 
         signature: signature 
       },
       (response) => {
-        // 如果鼠标已经移开或者已经检查了不同的签名，则不显示通知
+        
         if (currentHoverSignature !== signature) return;
         
         if (response && response.success) {
@@ -324,7 +321,7 @@ function handleLinkHover(event) {
         }
       }
     );
-  }, 300); // 300ms延迟，避免过于频繁的API调用
+  }, 300); // 300ms delay
 }
 
 function handleLinkLeave() {
@@ -347,13 +344,13 @@ function isTransactionPage() {
   return window.location.href.startsWith(txStartsWith);
 }
 
-// 设置页面加载和导航的处理
+
 function setupPageHandlers() {    
-  // 添加鼠标悬停事件监听器
+
   document.addEventListener('mouseover', handleLinkHover);
   document.addEventListener('mouseout', handleLinkLeave);
   
-  // 检查当前页面
+
   if (isTransactionPage()) {    
     checkForJitoBundle();    
     attemptInsertCustomDiv("#", "Bundle ID (Tip)");
@@ -363,16 +360,15 @@ function setupPageHandlers() {
 }
 
 function insertCustomDiv(para_link, para_text) {
-  // 先找到所有符合基本属性的 div
+
   const divs = document.querySelectorAll("div");
 
   const signerDiv = Array.from(divs).find(div => div.innerText.trim() === "Signer");
   if (!signerDiv) {
-    console.log("未找到包含 'Signer' 的 div");
+    console.log("failed for 'Signer' div");
     return false;
   }
 
-  // 创建新的 div 元素
   const newDiv = document.createElement("div");
   newDiv.innerHTML = `
       <div class="flex flex-row flex-wrap justify-start grow-0 shrink-0 basis-full min-w-0 box-border -mx-4 sm:-mx-3 items-stretch gap-y-0">
@@ -412,8 +408,8 @@ function insertCustomDiv(para_link, para_text) {
       </div>
   `;
 
-  // 插入新元素
-  const outerDiv = signerDiv.closest("div").parentNode.closest("div").parentNode.closest("div").parentNode; // 获取最外层的 <div>  
+
+  const outerDiv = signerDiv.closest("div").parentNode.closest("div").parentNode.closest("div").parentNode;   
   outerDiv.insertAdjacentElement("afterend", newDiv);
   return true;
 }
@@ -443,14 +439,14 @@ function addLoadingIndicator() {
   let element = document.getElementById("jito-bundle-link");
   if (!element) return;
 
-  // 设置文本内容
+
   element.textContent = "Updating";
   element.style.display = "inline-flex";
   element.style.alignItems = "center";
   element.style.fontWeight = "bold";
   element.style.fontSize = "14px";
   
-  // 创建旋转加载动画（单指针样式）
+
   let spinner = document.createElement("div");
   spinner.style.width = "16px";
   spinner.style.height = "16px";
@@ -460,7 +456,7 @@ function addLoadingIndicator() {
   spinner.style.borderTop = "2px solid black";
   spinner.style.animation = "spin 1s linear infinite";
   
-  // 添加旋转动画样式
+
   let style = document.createElement("style");
   style.textContent = `
       @keyframes spin {
@@ -470,7 +466,7 @@ function addLoadingIndicator() {
   `;
   document.head.appendChild(style);
   
-  // 添加旋转图标到元素
+
   element.appendChild(spinner);
 }
 
@@ -500,21 +496,21 @@ function attemptUpdateCustomDiv(maxAttempts = 30, attempt = 0) {
         element.href = global_response.bundleUrl;
       }    
 
-      // 指定要复制到剪贴板的内容
+
       const contentToCopy = bundleId;
 
-      // 获取元素
+
       const copyElement = document.getElementById('cp-jitobundle');
 
       if (copyElement) {
-          // 为元素添加点击事件监听器
+          
           copyElement.addEventListener('click', async () => {
               try {
-                  // 使用 Clipboard API 将内容写入剪贴板
+                  
                   await navigator.clipboard.writeText(contentToCopy);
-                  console.log('内容已成功复制到剪贴板');
+                  console.log('copied');
               } catch (error) {
-                  console.error('复制内容到剪贴板时出错:', error);
+                  console.error('copy failed:', error);
               }
           });
       } 
@@ -529,7 +525,7 @@ function attemptUpdateCustomDiv(maxAttempts = 30, attempt = 0) {
 }
 
 
-// 初始化
+// init
 setupPageHandlers();
 
 // Monitor URL changes (for SPA navigation)
@@ -556,8 +552,3 @@ window.addEventListener('popstate', () => {
     removeNotification();
   }
 });
-
-  // 检查当前页面
-  //if (isTransactionPage()) {
-  //  attemptInsertCustomDiv("#", "Bundle ID (Tip)");
-  //}
